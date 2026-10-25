@@ -90,6 +90,35 @@ npm run dev
 2. Click "Sign up" to create your account
 3. Start building your wedding website!
 
+## Deploy to Vercel
+
+1. Import your GitHub repository into Vercel.
+2. Use the **Astro** framework preset, with the repository root as the root
+   directory. Leave the output directory at its framework default; do not
+   override it to `dist/client` or `dist/server`.
+3. Use `npm run build` as the build command. This generates Prisma Client
+   before building the app with the Vercel adapter.
+4. Set `DATABASE_URL` to your PostgreSQL connection string in Vercel's
+   environment variables. Configure the Cloudinary variables from
+   [CLOUDINARY_SETUP.md](./CLOUDINARY_SETUP.md) if you need uploads.
+5. Apply the checked-in migrations to your production database from a trusted
+   environment with `npx prisma migrate deploy`, using the production
+   `DATABASE_URL`.
+6. Deploy, or redeploy after changing environment variables or project settings.
+   The home page should redirect to `/login` when you are signed out.
+
+### Vercel `404 NOT_FOUND` after a successful build
+
+This app requires server-side rendering, including authentication and API
+routes. A standalone Node build does not create Vercel serverless routes.
+Keep `@astrojs/vercel` configured in `astro.config.mjs`; a successful build
+should create `.vercel/output/config.json` and a server function under
+`.vercel/output/functions/`.
+
+If the adapter is correct but the error persists, check the framework preset,
+root directory, and output-directory overrides above, then redeploy and visit
+the new deployment URL. Protected preview URLs also require Vercel login.
+
 ## 🎯 What You'll See
 
 ### First Time

@@ -225,18 +225,12 @@ weddingly-builder/
 
 ## 🌐 Deployment
 
-This project can be deployed to any Node.js hosting platform:
+This project is configured for **Vercel** with Astro's Vercel adapter.
+See the [Vercel deployment steps](./QUICKSTART.md#deploy-to-vercel) for
+project settings, environment variables, and database migrations.
 
-- **Vercel** (Recommended)
-- **Netlify**
-- **Railway**
-- **Render**
-
-Make sure to:
-
-1. Set up environment variables
-2. Configure PostgreSQL database
-3. Run migrations before deployment
+To deploy to another platform, replace the adapter with the appropriate Astro
+adapter for that host.
 
 ## 📖 Documentation
 
