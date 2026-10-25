@@ -68,7 +68,7 @@ export default function AdminDashboard() {
               </h1>
               {weddingSite?.slug && (
                 <p className="text-sm text-gray-500">
-                  theevermore.com/{weddingSite.slug}
+                  mschm.id/{weddingSite.slug}
                 </p>
               )}
             </div>

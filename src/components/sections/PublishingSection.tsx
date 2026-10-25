@@ -36,7 +36,7 @@ export function PublishingSection({
     if (typeof window !== 'undefined') {
       return window.location.origin;
     }
-    return 'https://theevermore.com';
+    return 'https://mschm.id';
   };
 
   const generatePersonalizedUrl = (guestName: string) => {
@@ -70,7 +70,7 @@ export function PublishingSection({
           </label>
           <div className="flex items-center gap-2">
             <span className="text-sm text-muted-foreground">
-              theevermore.com/
+              mschm.id/
             </span>
             <Input
               {...register('slug')}

@@ -124,7 +124,7 @@ export function GuestEventsSection({
               {/* Embedded Map */}
               <AspectRatio ratio={16 / 9}>
                 <iframe
-                  src={event.address}
+                  src={`https://www.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed`}
                   className="w-full h-full"
                   style={{ border: 0 }}
                   allowFullScreen

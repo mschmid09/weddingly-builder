@@ -58,7 +58,7 @@ This is the single, secure, all-in-one page the couple logs into. This interface
 | 1.8  | **Photo Gallery Section** | As a Couple, I want a simple uploader to add up to 10 photos to a gallery.                                                                 | Should-Have |
 | 1.9  | **Gift Registry Section** | As a Couple, I want a text box where I can add links to my registries or provide bank transfer details.                                    | Must-Have   |
 | 1.10 | **Section Toggling**      | As a Couple, I want to use simple on/off toggles to hide any section I don't need (e.g., "Hide Photo Gallery").                            | Must-Have   |
-| 1.11 | **Publishing & URL**      | As a Couple, I want a "Publish" button. When published, I get a unique, shareable URL (e.g., `theevermore.com/jane-and-john`).             | Must-Have   |
+| 1.11 | **Publishing & URL**      | As a Couple, I want a "Publish" button. When published, I get a unique, shareable URL (e.g., `mschm.id/jane-and-john`).             | Must-Have   |
 | 1.12 | **Password Protection**   | As a Couple, I want an _optional_ text field to set a simple password for my Guest Home Page.                                              | Must-Have   |
 
 #### 1.B: "RSVP List" View (Guest Management)
