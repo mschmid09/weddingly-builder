@@ -1,5 +1,7 @@
-import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
+import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { ArrowRight, RotateCcw } from 'lucide-react';
+import './postcard.css';
 
 interface EnvelopeInvitationProps {
   brideName?: string;
@@ -8,171 +10,141 @@ interface EnvelopeInvitationProps {
   primaryColor?: string;
   secondaryColor?: string;
   headingFont?: string;
-  onOpen: () => void;
+  postcardImageUrl?: string;
+  postcardStampUrl?: string;
+  weddingDate?: string;
+  children?: ReactNode;
 }
+
+const defaultPhoto = 'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=85';
 
 export function EnvelopeInvitation({
   brideName,
   groomName,
   guestName,
-  primaryColor = '#e4b6c6',
-  secondaryColor = '#d4a5a5',
   headingFont = 'Playfair Display',
-  onOpen,
+  postcardImageUrl,
+  postcardStampUrl,
+  weddingDate,
+  children,
 }: EnvelopeInvitationProps) {
-  const [isHovered, setIsHovered] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const trackRef = useRef<HTMLElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
+  const heroRef = useRef<HTMLDivElement>(null);
+  const focusOnOpen = useRef(false);
+  const [noteVisible, setNoteVisible] = useState(!!reducedMotion);
+  const [heroSide, setHeroSide] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const [viewport, setViewport] = useState({ width: 1024, height: 768 });
+  const { scrollYProgress } = useScroll({ target: trackRef, offset: ['start start', 'end end'] });
+  const mobile = viewport.width <= 600;
+  const ratio = mobile ? 0.65 : 1.56;
+  const initialWidth = Math.min(mobile ? 430 : 840, viewport.width - 44, Math.max(220, viewport.height - 110) * ratio);
+  const width = useTransform(scrollYProgress, [0, 0.52, 0.84, 1], [initialWidth, initialWidth, viewport.width, viewport.width]);
+  const height = useTransform(scrollYProgress, [0, 0.52, 0.84, 1], [initialWidth / ratio, initialWidth / ratio, viewport.height, viewport.height]);
+  const rotation = useTransform(scrollYProgress, [0, 0.18, 0.38, 0.62, 1], [0, 180, 180, 360, 360]);
+  const tilt = useTransform(scrollYProgress, [0, 0.5, 0.84], [-2, -2, 0]);
+  const border = useTransform(scrollYProgress, [0, 0.52, 0.84], [mobile ? 9 : 12, mobile ? 9 : 12, 0]);
+  const captionOpacity = useTransform(scrollYProgress, [0, 0.08], [1, 0]);
+  const controlsOpacity = useTransform(scrollYProgress, [0.38, 0.5], [1, 0]);
+  const couple = [brideName, groomName].filter(Boolean).join(' & ') || 'Our wedding';
+  const photo = postcardImageUrl || defaultPhoto;
+  const date = weddingDate ? new Date(weddingDate) : null;
+  const dateLabel = date && !Number.isNaN(date.getTime())
+    ? new Intl.DateTimeFormat('en', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' }).format(date)
+    : '';
+
+  useEffect(() => {
+    const measure = () => {
+      if (!stageRef.current) return;
+      const bounds = stageRef.current.getBoundingClientRect();
+      setViewport({ width: bounds.width, height: bounds.height });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    if (stageRef.current) observer.observe(stageRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  useMotionValueEvent(scrollYProgress, 'change', progress => {
+    setNoteVisible(reducedMotion ? progress < 0.5 : progress >= 0.12 && progress < 0.5);
+    setHeroSide(progress >= 0.5);
+    setRevealed(progress >= 0.98);
+    if (progress >= 0.995 && focusOnOpen.current) {
+      focusOnOpen.current = false;
+      heroRef.current?.focus({ preventScroll: true });
+    }
+  });
+
+  const scrollToProgress = (progress: number) => {
+    const track = trackRef.current;
+    const stage = stageRef.current;
+    if (!track || !stage) return;
+    const top = window.scrollY + track.getBoundingClientRect().top;
+    window.scrollTo({ top: top + (track.offsetHeight - stage.offsetHeight) * progress, behavior: reducedMotion ? 'instant' : 'smooth' });
+  };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-linear-to-br from-gray-50 via-white to-gray-100 overflow-hidden">
-      {/* Background decorative elements */}
+    <section ref={trackRef} data-hero-side={heroSide} className={`postcard-scroll-track${reducedMotion ? ' postcard-reduced' : ''}`} style={{ fontFamily: headingFont }}>
+      <div ref={stageRef} className="postcard-stage">
+      <div className="postcard-backdrop" />
       <motion.div
-        className="absolute inset-0 opacity-10"
-        animate={{
-          scale: [1, 1.1, 1],
-          rotate: [0, 5, 0],
-        }}
-        transition={{
-          duration: 20,
-          repeat: Infinity,
-          ease: 'linear',
-        }}
+        className="postcard-arrival"
+        style={{ width: reducedMotion ? (heroSide ? viewport.width : initialWidth) : width, height: reducedMotion ? (heroSide ? viewport.height : initialWidth / ratio) : height, rotate: reducedMotion ? 0 : tilt }}
       >
-        <div
-          className="absolute top-10 left-10 w-32 h-32 rounded-full"
-          style={{ backgroundColor: primaryColor }}
-        />
-        <div
-          className="absolute bottom-20 right-20 w-40 h-40 rounded-full"
-          style={{ backgroundColor: secondaryColor }}
-        />
-      </motion.div>
-
-      <div className="relative z-10 flex flex-col items-center px-4">
-        {/* Greeting Text */}
-        {guestName && (
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.3 }}
-            className="mb-8 text-center"
-          >
-            <p
-              className="text-2xl sm:text-3xl font-light"
-              style={{
-                fontFamily: headingFont,
-                color: secondaryColor,
-              }}
-            >
-              Dear {guestName},
-            </p>
-          </motion.div>
-        )}
-
-        {/* Envelope */}
         <motion.div
-          initial={{ scale: 0.8, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.5 }}
-          onHoverStart={() => setIsHovered(true)}
-          onHoverEnd={() => setIsHovered(false)}
-          className="relative cursor-pointer"
-          style={{ perspective: '1000px' }}
+          className="postcard"
+          style={{ rotateY: reducedMotion ? 0 : rotation }}
         >
-          {/* Envelope body */}
-          <div
-            className="relative w-80 h-56 sm:w-96 sm:h-64 rounded-lg shadow-2xl"
-            style={{
-              backgroundColor: primaryColor,
-            }}
-          >
-            {/* Envelope flap */}
-            <motion.div
-              className="absolute inset-0 origin-top"
-              style={{
-                backgroundColor: secondaryColor,
-                clipPath: 'polygon(0 0, 50% 40%, 100% 0)',
-              }}
-              animate={{
-                rotateX: isHovered ? -20 : 0,
-              }}
-              transition={{ duration: 0.3 }}
-            />
-
-            {/* Letter inside */}
-            <div className="absolute inset-4 sm:inset-6 flex flex-col items-center justify-center bg-white rounded-md shadow-inner p-4">
-              <div
-                className="text-4xl sm:text-5xl mb-4"
-                style={{ color: primaryColor }}
-              >
-                💌
-              </div>
-              <h2
-                className="text-xl sm:text-2xl font-bold text-center mb-2"
-                style={{
-                  fontFamily: headingFont,
-                  color: secondaryColor,
-                }}
-              >
-                You're Invited!
-              </h2>
-              <p className="text-sm text-center text-gray-600 mb-4">
-                To the wedding of
-              </p>
-              <p
-                className="text-lg sm:text-xl font-semibold text-center"
-                style={{
-                  fontFamily: headingFont,
-                  color: primaryColor,
-                }}
-              >
-                {brideName} & {groomName}
-              </p>
-            </div>
-
-            {/* Seal/Stamp decoration */}
-            <motion.div
-              className="absolute -bottom-4 -right-4 w-16 h-16 rounded-full flex items-center justify-center shadow-lg"
-              style={{
-                backgroundColor: secondaryColor,
-              }}
-              animate={{
-                scale: isHovered ? 1.1 : 1,
-                rotate: isHovered ? 10 : 0,
-              }}
-              transition={{ duration: 0.3 }}
-            >
-              <span className="text-2xl">💍</span>
+          <motion.div className="postcard-face postcard-front" style={{ padding: reducedMotion && heroSide ? 0 : border }} aria-hidden={noteVisible}>
+            <div className="postcard-surface">
+            <img hidden={heroSide && !!children} className="postcard-photo" src={photo} alt={`A postcard from ${couple}`} onError={event => { if (event.currentTarget.src !== defaultPhoto) event.currentTarget.src = defaultPhoto; }} />
+            <motion.div className="postcard-photo-caption" style={{ opacity: captionOpacity }}>
+              <span>A little note from</span>
+              <p>{couple}</p>
+              {dateLabel && <span>{dateLabel}</span>}
             </motion.div>
+            {children && <div ref={heroRef} tabIndex={-1} className="postcard-hero" style={{ visibility: heroSide ? 'visible' : 'hidden' }} inert={!revealed} aria-hidden={!heroSide}>
+              {children}
+            </div>}
+            </div>
+          </motion.div>
+
+          <div className="postcard-face postcard-back" aria-hidden={!noteVisible} inert={!noteVisible}>
+            <div className="postcard-message">
+              <span className="postcard-eyebrow">Together with our families</span>
+              <h1>You're invited.</h1>
+              <p className="postcard-note">To a day we'll remember forever.<br />It wouldn't be the same without you.</p>
+              <p className="postcard-signature">{couple}</p>
+              {dateLabel && <p className="postcard-date">{dateLabel}</p>}
+              <button className="postcard-open" onClick={() => { focusOnOpen.current = true; scrollToProgress(1); }}>
+                Open invitation <ArrowRight size={17} aria-hidden="true" />
+              </button>
+            </div>
+            <div className="postcard-address">
+              <div className="postcard-postage" aria-label="Postage stamp">
+                <div className="postcard-postmark" aria-hidden="true"><span>WITH LOVE</span><span>THE WEDDING POST</span></div>
+                <div className="postcard-stamp">
+                  <img src={postcardStampUrl || photo} alt="" onError={event => { if (event.currentTarget.src !== defaultPhoto) event.currentTarget.src = defaultPhoto; }} />
+                  <span>LOVE / FOREVER</span>
+                </div>
+              </div>
+              <div className="postcard-recipient">
+                <span>Especially for</span>
+                <p>{guestName || 'Our dearest friends & family'}</p>
+                <div className="postcard-address-line" />
+                <div className="postcard-address-line" />
+              </div>
+              <span className="postcard-airmail">A note worth keeping</span>
+            </div>
           </div>
         </motion.div>
-
-        {/* Open Button */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 1 }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={onOpen}
-          className="mt-12 px-8 py-3 rounded-full text-white font-medium shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
-          style={{
-            backgroundColor: secondaryColor,
-            fontFamily: headingFont,
-          }}
-        >
-          Open Invitation
-        </motion.button>
-
-        {/* Instruction Text */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 1.5 }}
-          className="mt-4 text-sm text-gray-500 text-center"
-        >
-          Click to view the wedding details
-        </motion.p>
+      </motion.div>
+      <motion.button className="postcard-turn" style={{ opacity: controlsOpacity }} tabIndex={revealed ? -1 : 0} onClick={() => scrollToProgress(noteVisible ? 0 : 0.26)} aria-label={noteVisible ? 'View postcard photo' : 'Read postcard invitation'} title={noteVisible ? 'View postcard photo' : 'Read postcard invitation'}>
+        <RotateCcw size={19} aria-hidden="true" />
+      </motion.button>
       </div>
-    </div>
+    </section>
   );
 }

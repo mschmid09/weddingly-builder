@@ -1,3 +1,5 @@
+import { ArrowDown } from 'lucide-react';
+
 interface HeroSectionProps {
   brideName?: string;
   groomName?: string;
@@ -30,16 +32,16 @@ export function GuestHeroSection({
 
   return (
     <section
-      className="relative min-h-screen flex items-center justify-center text-white overflow-hidden"
+      className={`guest-hero ${heroImageUrl ? 'guest-hero-photo' : ''}`}
       style={{
         backgroundImage: heroImageUrl
-          ? `linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url(${heroImageUrl})`
-          : `linear-gradient(135deg, ${primaryColor} 0%, #ffffff 100%)`,
+          ? `linear-gradient(0deg, #14261fc4, #14261f08 85%), url(${heroImageUrl})`
+          : 'none',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
       }}
     >
-      <div className="relative z-10 text-center px-4 py-16">
+      <div className="guest-hero-content">
         <div className="max-w-4xl mx-auto">
           {/* Personalized Greeting */}
           {guestName && (
@@ -67,16 +69,8 @@ export function GuestHeroSection({
               color: heroImageUrl ? '#ffffff' : '#666',
             }}
           >
-            You are cordially invited to the wedding of
+            Together with our families
           </p>
-
-          {/* Decorative element */}
-          <div
-            className="text-4xl sm:text-6xl mb-6"
-            style={{ color: primaryColor }}
-          >
-            ❤
-          </div>
 
           {/* Names */}
           <h1
@@ -107,23 +101,7 @@ export function GuestHeroSection({
             </p>
           )}
 
-          {/* Scroll indicator */}
-          <div className="mt-12 animate-bounce">
-            <svg
-              className="w-6 h-6 mx-auto"
-              fill="none"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              style={{
-                color: heroImageUrl ? '#ffffff' : primaryColor,
-              }}
-            >
-              <path d="M19 14l-7 7m0 0l-7-7m7 7V3"></path>
-            </svg>
-          </div>
+          <a className="guest-reply-link" href="#rsvp">Kindly reply <ArrowDown size={16} aria-hidden="true" /></a>
         </div>
       </div>
     </section>

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Dialog, DialogContent, DialogTitle } from '../ui/dialog';
 
 interface GallerySectionProps {
   galleryTitle?: string;
@@ -41,10 +42,10 @@ export function GuestGallerySection({
   return (
     <>
       <section
-        className="py-16 px-4 sm:py-16"
-        style={{ backgroundColor: `${primaryColor}08` }}
+        className="guest-section guest-gallery"
       >
-        <div className="max-w-6xl mx-auto">
+        <div className="guest-inner">
+          <p className="guest-kicker">Collected moments</p>
           <h2
             className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
             style={{
@@ -64,7 +65,8 @@ export function GuestGallerySection({
               <button
                 key={index}
                 onClick={() => setSelectedImage(image)}
-                className={`relative overflow-hidden rounded-lg shadow-md hover:shadow-xl transition-shadow cursor-pointer group ${getImageSpan(
+                aria-label={`View photo ${index + 1}`}
+                className={`guest-gallery-photo relative overflow-hidden cursor-pointer group ${getImageSpan(
                   index,
                   galleryImages.length,
                 )}`}
@@ -72,7 +74,8 @@ export function GuestGallerySection({
                 <img
                   src={image}
                   alt={`Gallery image ${index + 1}`}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                  loading="lazy"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
               </button>
@@ -82,26 +85,12 @@ export function GuestGallerySection({
       </section>
 
       {/* Lightbox */}
-      {selectedImage && (
-        <div
-          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setSelectedImage(null)}
-        >
-          <button
-            onClick={() => setSelectedImage(null)}
-            className="absolute top-4 right-4 text-white text-4xl hover:text-gray-300 transition-colors"
-            aria-label="Close"
-          >
-            ×
-          </button>
-          <img
-            src={selectedImage}
-            alt="Full size"
-            className="max-w-full max-h-full object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
-      )}
+      <Dialog open={!!selectedImage} onOpenChange={open => { if (!open) setSelectedImage(null); }}>
+        <DialogContent className="guest-lightbox sm:max-w-5xl" aria-describedby={undefined}>
+          <DialogTitle className="sr-only">Wedding photograph</DialogTitle>
+          {selectedImage && <img src={selectedImage} alt="Wedding photograph, full size" className="w-full max-h-[80dvh] object-contain" />}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

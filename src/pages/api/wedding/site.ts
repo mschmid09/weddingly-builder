@@ -1,29 +1,21 @@
 import type { APIRoute } from 'astro';
 import { requireAuth } from '../../../lib/auth';
 import prisma from '../../../lib/prisma';
+import { z } from 'zod';
+import { eventSchema, weddingSiteSchema } from '../../../lib/validations';
+import { getWeddingVersions, saveWeddingVersion } from '../../../lib/wedding-versions';
 
-interface EventData {
-  title: string;
-  date: string | Date;
-  time: string;
-  location: string;
-  address: string;
-}
+const versionSchema = weddingSiteSchema.extend({
+  weddingDate: z.coerce.date().nullable().optional(),
+  events: z.array(eventSchema.extend({ date: z.coerce.date() })),
+});
 
 export const GET: APIRoute = async (context) => {
   try {
     const session = await requireAuth(context);
 
-    const weddingSite = await prisma.weddingSite.findUnique({
-      where: { userId: session.userId },
-      include: {
-        events: {
-          orderBy: { order: 'asc' },
-        },
-      },
-    });
-
-    return new Response(JSON.stringify({ weddingSite }), {
+    const result = await getWeddingVersions(prisma, session.userId);
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -40,119 +32,19 @@ export const GET: APIRoute = async (context) => {
 export const POST: APIRoute = async (context) => {
   try {
     const session = await requireAuth(context);
-    const data = await context.request.json();
-
-    // Check if site exists
-    const existingSite = await prisma.weddingSite.findUnique({
-      where: { userId: session.userId },
-    });
-
-    const { events, ...siteData } = data;
-
-    let weddingSite: Awaited<
-      ReturnType<typeof prisma.weddingSite.create>
-    > | null = null;
-
-    if (existingSite) {
-      // Update existing site
-      weddingSite = await prisma.weddingSite.update({
-        where: { userId: session.userId },
-        data: {
-          ...siteData,
-          weddingDate: siteData.weddingDate
-            ? new Date(siteData.weddingDate)
-            : null,
-        },
-        include: {
-          events: {
-            orderBy: { order: 'asc' },
-          },
-        },
-      });
-
-      // Handle events if provided
-      if (events) {
-        // Delete existing events
-        await prisma.event.deleteMany({
-          where: { siteId: weddingSite.id },
-        });
-
-        // Create new events
-        if (events.length > 0 && weddingSite) {
-          const siteId = weddingSite.id;
-          await prisma.event.createMany({
-            data: events.map((event: EventData, index: number) => ({
-              siteId,
-              title: event.title,
-              date: new Date(event.date),
-              time: event.time,
-              location: event.location,
-              address: event.address,
-              order: index,
-            })),
-          });
-
-          // Fetch updated site with events
-          weddingSite = await prisma.weddingSite.findUnique({
-            where: { id: siteId },
-            include: {
-              events: {
-                orderBy: { order: 'asc' },
-              },
-            },
-          });
-        }
-      }
-    } else {
-      // Create new site
-      weddingSite = await prisma.weddingSite.create({
-        data: {
-          userId: session.userId,
-          slug: siteData.slug || `wedding-${Date.now()}`,
-          ...siteData,
-          weddingDate: siteData.weddingDate
-            ? new Date(siteData.weddingDate)
-            : null,
-        },
-        include: {
-          events: {
-            orderBy: { order: 'asc' },
-          },
-        },
-      });
-
-      // Create events if provided
-      if (events && events.length > 0 && weddingSite) {
-        const siteId = weddingSite.id;
-        await prisma.event.createMany({
-          data: events.map((event: EventData, index: number) => ({
-            siteId,
-            title: event.title,
-            date: new Date(event.date),
-            time: event.time,
-            location: event.location,
-            address: event.address,
-            order: index,
-          })),
-        });
-
-        // Fetch updated site with events
-        weddingSite = await prisma.weddingSite.findUnique({
-          where: { id: siteId },
-          include: {
-            events: {
-              orderBy: { order: 'asc' },
-            },
-          },
-        });
-      }
-    }
-
-    return new Response(JSON.stringify({ weddingSite }), {
+    const data = versionSchema.parse(await context.request.json());
+    const result = await saveWeddingVersion(prisma, session.userId, data);
+    return new Response(JSON.stringify(result), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return new Response(JSON.stringify({ error: 'Please check the wedding details.', issues: error.issues }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     const message =
       error instanceof Error
         ? error.message
@@ -163,7 +55,7 @@ export const POST: APIRoute = async (context) => {
         error: message,
       }),
       {
-        status: 500,
+        status: message === 'Unauthorized' ? 401 : 500,
         headers: { 'Content-Type': 'application/json' },
       },
     );

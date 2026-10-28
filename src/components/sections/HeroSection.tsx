@@ -69,6 +69,35 @@ export function HeroSection({
           />
         </div>
       </CardHeader>
+      <CardContent className="space-y-4">
+        <h3 className="text-sm font-medium">Invitation Postcard</h3>
+        <Controller
+          name="postcardImageUrl"
+          control={control}
+          render={({ field }) => (
+            <ImageUpload
+              label="Postcard Photo"
+              value={field.value || ''}
+              onChange={field.onChange}
+              onClear={() => field.onChange('')}
+            />
+          )}
+        />
+        {errors.postcardImageUrl && <p className="text-sm text-red-500">{errors.postcardImageUrl.message}</p>}
+        <Controller
+          name="postcardStampUrl"
+          control={control}
+          render={({ field }) => (
+            <ImageUpload
+              label="Postage Stamp Image"
+              value={field.value || ''}
+              onChange={field.onChange}
+              onClear={() => field.onChange('')}
+            />
+          )}
+        />
+        {errors.postcardStampUrl && <p className="text-sm text-red-500">{errors.postcardStampUrl.message}</p>}
+      </CardContent>
       {heroEnabled && (
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

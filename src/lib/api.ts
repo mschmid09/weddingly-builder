@@ -69,7 +69,7 @@ export const weddingSiteService = {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         ...data,
-        weddingDate: data.weddingDate?.toISOString(),
+        weddingDate: data.weddingDate ? data.weddingDate.toISOString() : null,
         events: data.events.map((e) => ({
           ...e,
           date: e.date.toISOString(),

@@ -19,13 +19,13 @@ export function GuestRegistrySection({
 
   return (
     <section
-      className="py-16 px-4 sm:py-16"
+      className="guest-section guest-registry"
       style={{
         fontFamily: bodyFont,
-        backgroundColor: `${primaryColor}08`,
       }}
     >
       <div className="max-w-3xl mx-auto">
+        <p className="guest-kicker">With gratitude</p>
         <h2
           className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
           style={{
@@ -37,10 +37,7 @@ export function GuestRegistrySection({
         </h2>
 
         <div
-          className="bg-white rounded-lg shadow-lg p-6 sm:p-8"
-          style={{
-            borderTop: `4px solid ${secondaryColor}`,
-          }}
+          className="guest-registry-note"
         >
           <div
             className="prose prose-sm sm:prose-base max-w-none text-gray-700 whitespace-pre-wrap"

@@ -4,7 +4,8 @@ import type {
   UseFormWatch,
 } from 'react-hook-form';
 import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
+import { Copy, Check, Download, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Card,
   CardContent,
@@ -16,6 +17,8 @@ import { Input } from '../ui/input';
 import { Button } from '../ui/button';
 import { FormField } from '../FormField';
 import type { WeddingSiteFormData } from '../../lib/validations';
+import { encodeGuestName } from '../../lib/utils';
+import { renderInvitationEmail } from '../../lib/invitation-email';
 
 interface PublishingSectionProps {
   register: UseFormRegister<WeddingSiteFormData>;
@@ -31,6 +34,7 @@ export function PublishingSection({
   const slug = watch('slug');
   const [guestNameInput, setGuestNameInput] = useState('');
   const [copied, setCopied] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const getBaseUrl = () => {
     if (typeof window !== 'undefined') {
@@ -40,9 +44,9 @@ export function PublishingSection({
   };
 
   const generatePersonalizedUrl = (guestName: string) => {
-    if (!slug || !guestName.trim()) return '';
-    const encodedName = encodeURIComponent(guestName.trim());
-    return `${getBaseUrl()}/${slug}?to=${encodedName}`;
+    if (!guestName.trim()) return '';
+    const encodedName = encodeGuestName(guestName);
+    return `${getBaseUrl()}/?to=${encodedName}`;
   };
 
   const copyToClipboard = async (text: string) => {
@@ -52,6 +56,32 @@ export function PublishingSection({
       setTimeout(() => setCopied(false), 2000);
     } catch (err) {
       console.error('Failed to copy:', err);
+    }
+  };
+
+  const downloadEmail = async () => {
+    setDownloading(true);
+    try {
+      const response = await fetch('/invitation-email.html');
+      if (!response.ok) throw new Error('Unable to load the email template.');
+      const html = renderInvitationEmail(await response.text(), {
+        ...watch(),
+        guestName: guestNameInput,
+        baseUrl: getBaseUrl(),
+      });
+      const url = URL.createObjectURL(new Blob([html], { type: 'text/html;charset=utf-8' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'wedding-invitation.html';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      toast.success('Invitation email downloaded.');
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Unable to download the invitation email.');
+    } finally {
+      setDownloading(false);
     }
   };
 
@@ -66,12 +96,9 @@ export function PublishingSection({
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            Website URL Slug
+            Wedding Identifier
           </label>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              mschm.id/
-            </span>
             <Input
               {...register('slug')}
               placeholder="jane-and-john"
@@ -99,6 +126,23 @@ export function PublishingSection({
           Guests will need this password to view your website
         </p>
 
+        <div className="border-t pt-4 space-y-3">
+          <h3 className="text-sm font-medium">Invitation Email</h3>
+          <label htmlFor="invitation-email-guest" className="block text-xs font-medium text-gray-700">
+            Guest Name (Optional)
+          </label>
+          <Input
+            id="invitation-email-guest"
+            value={guestNameInput}
+            onChange={event => setGuestNameInput(event.target.value)}
+            placeholder="e.g., John Smith"
+          />
+          <Button type="button" variant="outline" disabled={downloading} onClick={downloadEmail}>
+            {downloading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+            {downloading ? 'Preparing email...' : 'Download email'}
+          </Button>
+        </div>
+
         {/* Personalized URL Generator */}
         {slug && (
           <div className="border-t pt-4 mt-6">
@@ -111,18 +155,6 @@ export function PublishingSection({
             </p>
 
             <div className="space-y-3">
-              <div>
-                <label className="text-xs font-medium text-gray-700">
-                  Guest Name
-                </label>
-                <Input
-                  value={guestNameInput}
-                  onChange={(e) => setGuestNameInput(e.target.value)}
-                  placeholder="e.g., John Smith"
-                  className="mt-1"
-                />
-              </div>
-
               {guestNameInput.trim() && (
                 <div className="bg-gray-50 p-3 rounded-md">
                   <label className="text-xs font-medium text-gray-700 mb-1 block">

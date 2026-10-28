@@ -86,9 +86,10 @@ npm run dev
 
 ### Step 4: Access the App
 
-1. Open your browser to `http://localhost:4321`
+1. Open your browser to `http://localhost:4321/admin`
 2. Click "Sign up" to create your account
 3. Start building your wedding website!
+4. Publish the wedding, then visit `http://localhost:4321` for the guest invitation.
 
 ## Deploy to Vercel
 
@@ -226,7 +227,7 @@ If all steps work, you're ready to go! 🎉
 2. Upload images (use image URLs for now)
 3. Customize colors and fonts
 4. Enable/disable sections as needed
-5. Set a custom URL slug
+5. Set a wedding identifier (used internally, not in guest URLs)
 6. Publish your website
 
 ---

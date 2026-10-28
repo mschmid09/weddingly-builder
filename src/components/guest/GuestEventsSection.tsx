@@ -1,4 +1,4 @@
-import { MapPin, Calendar, Clock } from 'lucide-react';
+import { MapPin, Calendar, Clock, ArrowUpRight } from 'lucide-react';
 import { AspectRatio } from '../ui/aspect-ratio';
 
 interface Event {
@@ -39,13 +39,13 @@ export function GuestEventsSection({
 
   return (
     <section
-      className="py-16 px-4 sm:py-16"
+      className="guest-section guest-events"
       style={{
-        backgroundColor: `${primaryColor}08`,
         fontFamily: bodyFont,
       }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="guest-inner">
+        <p className="guest-kicker">The itinerary</p>
         <h2
           className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
           style={{
@@ -56,24 +56,22 @@ export function GuestEventsSection({
           When & Where
         </h2>
 
-        <div className="space-y-8 sm:space-y-12">
+        <div className="guest-event-list">
           {events.map((event, index) => (
             <div
               key={event.id || index}
-              className="bg-white rounded-lg shadow-lg overflow-hidden"
+              className="guest-event"
             >
               <div
-                className="p-6 sm:p-8"
-                style={{
-                  borderTop: `4px solid ${secondaryColor}`,
-                }}
+                className="guest-event-details"
               >
+                <span className="guest-kicker">{String(index + 1).padStart(2, '0')}</span>
                 {/* Event Title */}
                 <h3
                   className="text-2xl sm:text-3xl font-bold mb-6"
                   style={{
                     fontFamily: headingFont,
-                    color: secondaryColor,
+                    color: '#293d37',
                   }}
                 >
                   {event.title}
@@ -116,13 +114,15 @@ export function GuestEventsSection({
                       <p className="font-medium text-gray-900 mb-1">
                         {event.location}
                       </p>
+                      <p className="guest-event-address">{event.address}</p>
+                      {event.address && <a className="guest-map-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`} target="_blank" rel="noopener noreferrer">Get directions <ArrowUpRight size={14} aria-hidden="true" /></a>}
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Embedded Map */}
-              <AspectRatio ratio={16 / 9}>
+              {event.address && <AspectRatio ratio={16 / 9}>
                 <iframe
                   src={`https://www.google.com/maps?q=${encodeURIComponent(event.address)}&output=embed`}
                   className="w-full h-full"
@@ -132,7 +132,7 @@ export function GuestEventsSection({
                   referrerPolicy="no-referrer-when-downgrade"
                   title={`Map for ${event.title}`}
                 />
-              </AspectRatio>
+              </AspectRatio>}
             </div>
           ))}
         </div>

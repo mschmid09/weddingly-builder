@@ -1,13 +1,46 @@
 ---
 import '../styles/global.css';
-import { getSession } from '../lib/auth';
+import GuestPage from '../components/guest/GuestPage';
+import { Toaster } from '../components/ui/sonner';
+import prisma from '../lib/prisma';
 
-// Check if user is authenticated
-const session = getSession(Astro);
+export const prerender = false;
 
-if (session) {
-  return Astro.redirect('/admin');
+const weddingSite = await prisma.weddingSite.findFirst({
+  where: { isPublished: true },
+  orderBy: { createdAt: 'asc' },
+  select: { slug: true },
+});
+
+if (!weddingSite) {
+  Astro.response.status = 404;
 }
-
-return Astro.redirect('/login');
 ---
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Wedding Invitation</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Lato:wght@300;400;700&family=Great+Vibes&family=Montserrat:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    {weddingSite ? (
+      <GuestPage slug={weddingSite.slug} client:load />
+    ) : (
+      <main class="min-h-screen flex items-center justify-center px-4">
+        <h1 class="text-2xl font-bold text-gray-900 text-center">
+          This wedding invitation is not published yet
+        </h1>
+      </main>
+    )}
+    <Toaster client:only="react" />
+  </body>
+</html>

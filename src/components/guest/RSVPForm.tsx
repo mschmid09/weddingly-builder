@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useId } from 'react';
+import { Check, Send } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,7 +15,9 @@ const rsvpSchema = z.object({
     .email('Invalid email')
     .optional()
     .or(z.literal('')),
-  attending: z.enum(['yes', 'no']),
+  attending: z.enum(['yes', 'no'], {
+    errorMap: () => ({ message: 'Please let us know if you can attend.' }),
+  }),
   dietaryRestrictions: z.string().optional(),
   message: z.string().optional(),
 });
@@ -36,6 +39,7 @@ export function RSVPForm({
 }: RSVPFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const formId = useId();
 
   const {
     register,
@@ -85,29 +89,16 @@ export function RSVPForm({
 
   if (submitted) {
     return (
-      <div
-        className="text-center py-12 px-4"
-        style={{
-          backgroundColor: `${primaryColor}10`,
-          borderRadius: '12px',
-        }}
-      >
+      <div className="guest-rsvp-confirmation text-center py-12 px-4" role="status">
         <div className="max-w-md mx-auto">
-          <div
-            className="text-6xl mb-4"
-            style={{ color: accentColor }}
-          >
-            ✓
-          </div>
+          <Check size={28} strokeWidth={1} className="mx-auto mb-6" aria-hidden="true" />
           <h3
-            className="text-2xl font-bold mb-2"
-            style={{ color: accentColor }}
+            className="text-2xl mb-2"
           >
-            Thank You!
+            Your reply is on its way.
           </h3>
           <p className="text-gray-600">
-            We've received your RSVP. We can't wait to celebrate with
-            you!
+            {attending === 'yes' ? "Thank you. We can't wait to celebrate with you." : "Thank you for letting us know. You'll be there in spirit."}
           </p>
         </div>
       </div>
@@ -118,11 +109,13 @@ export function RSVPForm({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* Full Name */}
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label htmlFor={`${formId}-name`} className="block text-sm font-medium mb-2">
           Full Name <span className="text-red-500">*</span>
         </label>
         <Input
           {...register('fullName')}
+          id={`${formId}-name`}
+          autoComplete="name"
           placeholder="Your full name"
           className="w-full"
         />
@@ -135,11 +128,13 @@ export function RSVPForm({
 
       {/* Email */}
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label htmlFor={`${formId}-email`} className="block text-sm font-medium mb-2">
           Email (Optional)
         </label>
         <Input
           {...register('email')}
+          id={`${formId}-email`}
+          autoComplete="email"
           type="email"
           placeholder="your@email.com"
           className="w-full"
@@ -152,11 +147,11 @@ export function RSVPForm({
       </div>
 
       {/* Attending */}
-      <div>
-        <label className="block text-sm font-medium mb-3">
+      <fieldset>
+        <legend className="block text-sm font-medium mb-3">
           Will you be attending?{' '}
           <span className="text-red-500">*</span>
-        </label>
+        </legend>
         <div className="flex gap-4">
           <label className="flex items-center flex-1">
             <input
@@ -184,16 +179,17 @@ export function RSVPForm({
             {errors.attending.message}
           </p>
         )}
-      </div>
+      </fieldset>
 
       {/* Dietary Restrictions - only show if attending */}
       {attending === 'yes' && (
         <div>
-          <label className="block text-sm font-medium mb-2">
+          <label htmlFor={`${formId}-dietary`} className="block text-sm font-medium mb-2">
             Dietary Restrictions (Optional)
           </label>
           <Input
             {...register('dietaryRestrictions')}
+            id={`${formId}-dietary`}
             placeholder="Any allergies or dietary needs?"
             className="w-full"
           />
@@ -202,11 +198,12 @@ export function RSVPForm({
 
       {/* Message */}
       <div>
-        <label className="block text-sm font-medium mb-2">
+        <label htmlFor={`${formId}-message`} className="block text-sm font-medium mb-2">
           Message for the Couple (Optional)
         </label>
         <Textarea
           {...register('message')}
+          id={`${formId}-message`}
           placeholder="Share your warm wishes..."
           className="w-full min-h-[100px]"
         />
@@ -221,7 +218,8 @@ export function RSVPForm({
           backgroundColor: accentColor,
         }}
       >
-        {isSubmitting ? 'Submitting...' : 'Submit RSVP'}
+        <Send size={16} aria-hidden="true" />
+        {isSubmitting ? 'Sending...' : 'Send reply'}
       </Button>
     </form>
   );

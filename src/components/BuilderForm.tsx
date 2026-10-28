@@ -17,16 +17,17 @@ import { PublishingSection } from './sections/PublishingSection';
 import { StorySection } from './sections/StorySection';
 import { GallerySection } from './sections/GallerySection';
 import { RegistrySection } from './sections/RegistrySection';
-import { MusicSection } from './sections/MusicSection';
 
 interface BuilderFormProps {
   initialData?: WeddingSite;
-  onSave?: (data: WeddingSite) => void;
+  onSave?: (data: WeddingSite, versions: WeddingSite[]) => void;
+  onDirtyChange?: (dirty: boolean) => void;
 }
 
 export default function BuilderForm({
   initialData,
   onSave,
+  onDirtyChange,
 }: BuilderFormProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -49,6 +50,8 @@ export default function BuilderForm({
         ? new Date(initialData.weddingDate)
         : null,
       heroImageUrl: initialData?.heroImageUrl || '',
+      postcardImageUrl: initialData?.postcardImageUrl || '',
+      postcardStampUrl: initialData?.postcardStampUrl || '',
 
       // Story Section
       storyEnabled: initialData?.storyEnabled ?? true,
@@ -66,12 +69,6 @@ export default function BuilderForm({
       registryEnabled: initialData?.registryEnabled ?? true,
       registryTitle: initialData?.registryTitle || 'Gift Registry',
       registryText: initialData?.registryText || '',
-
-      // Music Section
-      musicEnabled: initialData?.musicEnabled ?? true,
-      musicUrl: initialData?.musicUrl || '',
-      musicTitle: initialData?.musicTitle || '',
-      musicArtist: initialData?.musicArtist || '',
 
       // Publishing
       slug: initialData?.slug || '',
@@ -91,9 +88,12 @@ export default function BuilderForm({
     control,
     handleSubmit,
     watch,
-    setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = form;
+
+  useEffect(() => {
+    onDirtyChange?.(isDirty);
+  }, [isDirty, onDirtyChange]);
 
   const eventsArray = useFieldArray({
     control,
@@ -116,6 +116,8 @@ export default function BuilderForm({
           ? new Date(initialData.weddingDate)
           : null,
         heroImageUrl: initialData.heroImageUrl || '',
+        postcardImageUrl: initialData.postcardImageUrl || '',
+        postcardStampUrl: initialData.postcardStampUrl || '',
         storyEnabled: initialData.storyEnabled ?? true,
         storyTitle: initialData.storyTitle || 'Our Story',
         storyText: initialData.storyText || '',
@@ -127,10 +129,6 @@ export default function BuilderForm({
         registryEnabled: initialData.registryEnabled ?? true,
         registryTitle: initialData.registryTitle || 'Gift Registry',
         registryText: initialData.registryText || '',
-        musicEnabled: initialData.musicEnabled ?? true,
-        musicUrl: initialData.musicUrl || '',
-        musicTitle: initialData.musicTitle || '',
-        musicArtist: initialData.musicArtist || '',
         slug: initialData.slug || '',
         password: initialData.password || '',
         events:
@@ -158,10 +156,10 @@ export default function BuilderForm({
         isPublished: false,
       });
 
-      toast.success('Wedding site saved as draft!');
+      toast.success('New version saved. Your published invitation is unchanged.');
 
       if (onSave) {
-        onSave(result.weddingSite);
+        onSave(result.weddingSite, result.versions);
       }
     } catch (error) {
       const message =
@@ -179,7 +177,7 @@ export default function BuilderForm({
     try {
       // Validate required fields for publishing
       if (!data.slug) {
-        toast.error('Please provide a URL slug before publishing');
+        toast.error('Please provide a wedding identifier before publishing');
         return;
       }
 
@@ -196,10 +194,10 @@ export default function BuilderForm({
         isPublished: true,
       });
 
-      toast.success('Wedding site published successfully!');
+      toast.success('New version published successfully!');
 
       if (onSave) {
-        onSave(result.weddingSite);
+        onSave(result.weddingSite, result.versions);
       }
     } catch (error) {
       const message =
@@ -224,8 +222,8 @@ export default function BuilderForm({
             <h3 className="font-semibold">Publishing Status</h3>
             <p className="text-sm text-muted-foreground">
               {initialData.isPublished
-                ? 'Your website is live and accessible to guests'
-                : 'Your website is saved as draft'}
+                ? 'This version is live and accessible to guests'
+                : 'This version is saved as a draft'}
             </p>
           </div>
           <div
@@ -281,12 +279,6 @@ export default function BuilderForm({
         watch={watch}
       />
 
-      <MusicSection
-        register={register}
-        watch={watch}
-        setValue={setValue}
-      />
-
       <PublishingSection
         register={register}
         errors={errors}
@@ -301,7 +293,7 @@ export default function BuilderForm({
           className="flex-1"
         >
           <Save className="mr-2 h-4 w-4" />
-          {isSaving ? 'Saving...' : 'Save Draft'}
+          {isSaving ? 'Saving...' : 'Save New Version'}
         </Button>
         <Button
           type="button"
@@ -310,7 +302,7 @@ export default function BuilderForm({
           className="flex-1"
           variant="default"
         >
-          {isPublishing ? 'Publishing...' : 'Publish Website'}
+          {isPublishing ? 'Publishing...' : 'Publish New Version'}
         </Button>
       </div>
     </form>

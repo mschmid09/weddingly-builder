@@ -21,10 +21,11 @@ export function GuestStorySection({
 
   return (
     <section
-      className="py-16 px-4 sm:py-16"
+      className="guest-section guest-story"
       style={{ fontFamily: bodyFont }}
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="guest-inner">
+        <p className="guest-kicker">A little about us</p>
         <h2
           className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
           style={{
@@ -40,7 +41,7 @@ export function GuestStorySection({
           {storyText && (
             <div className="text-center max-w-2xl mx-auto">
               <p
-                className="text-base sm:text-lg leading-relaxed text-gray-700 whitespace-pre-wrap"
+                className="guest-story-text whitespace-pre-wrap"
                 style={{ fontFamily: bodyFont }}
               >
                 {storyText}
@@ -59,28 +60,24 @@ export function GuestStorySection({
             >
               {storyImage1Url && (
                 <div
-                  className="rounded-lg overflow-hidden shadow-lg"
-                  style={{
-                    border: `3px solid ${primaryColor}`,
-                  }}
+                  className="guest-story-photo"
                 >
                   <img
                     src={storyImage1Url}
                     alt="Our story"
+                    loading="lazy"
                     className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>
               )}
               {storyImage2Url && (
                 <div
-                  className="rounded-lg overflow-hidden shadow-lg"
-                  style={{
-                    border: `3px solid ${primaryColor}`,
-                  }}
+                  className="guest-story-photo"
                 >
                   <img
                     src={storyImage2Url}
                     alt="Our story"
+                    loading="lazy"
                     className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>

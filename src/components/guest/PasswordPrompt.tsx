@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
+import { LockKeyhole } from 'lucide-react';
 
 interface PasswordPromptProps {
   onSubmit: (password: string) => void;
@@ -23,7 +24,7 @@ export function PasswordPrompt({
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 bg-linear-to-br from-gray-50 to-gray-100">
+    <div className="guest-stationery guest-password min-h-screen flex items-center justify-center px-6">
       <div className="max-w-md w-full">
         <div
           className="text-center mb-8"
@@ -31,17 +32,12 @@ export function PasswordPrompt({
             fontFamily: headingFont,
           }}
         >
-          <div
-            className="text-5xl mb-4"
-            style={{ color: primaryColor }}
-          >
-            🔒
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2">
-            Password Protected
+          <LockKeyhole className="mx-auto mb-6" size={24} strokeWidth={1} aria-hidden="true" />
+          <h1 className="text-3xl sm:text-4xl mb-4">
+            A private invitation
           </h1>
           <p className="text-gray-600">
-            Please enter the password to view this wedding website
+            Enter your invitation password to join us.
           </p>
         </div>
 
@@ -49,6 +45,8 @@ export function PasswordPrompt({
           <div>
             <Input
               type="password"
+              aria-label="Invitation password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter password"
@@ -64,12 +62,9 @@ export function PasswordPrompt({
 
           <Button
             type="submit"
-            className="w-full"
-            style={{
-              backgroundColor: primaryColor,
-            }}
+            className="guest-password-submit w-full"
           >
-            Enter
+            Open invitation
           </Button>
         </form>
       </div>

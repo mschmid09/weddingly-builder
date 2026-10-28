@@ -14,20 +14,26 @@ export default function AdminDashboard() {
     null,
   );
   const [loading, setLoading] = useState(true);
+  const [versions, setVersions] = useState<WeddingSite[]>([]);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [loadError, setLoadError] = useState(false);
 
   useEffect(() => {
     fetchWeddingSite();
   }, []);
 
   const fetchWeddingSite = async () => {
+    setLoading(true);
+    setLoadError(false);
     try {
       const response = await fetch('/api/wedding/site');
-      if (response.ok) {
-        const data = await response.json();
-        setWeddingSite(data.weddingSite);
-      }
+      if (!response.ok) throw new Error('Unable to load saved wedding versions.');
+      const data = await response.json();
+      setWeddingSite(data.weddingSite);
+      setVersions(data.versions || []);
     } catch (error) {
       console.error('Failed to fetch wedding site:', error);
+      setLoadError(true);
     } finally {
       setLoading(false);
     }
@@ -44,8 +50,10 @@ export default function AdminDashboard() {
     }
   };
 
-  const handleSave = (updatedSite: WeddingSite) => {
+  const handleSave = (updatedSite: WeddingSite, updatedVersions: WeddingSite[]) => {
     setWeddingSite(updatedSite);
+    setVersions(updatedVersions);
+    setHasUnsavedChanges(false);
   };
 
   if (loading) {
@@ -68,7 +76,9 @@ export default function AdminDashboard() {
               </h1>
               {weddingSite?.slug && (
                 <p className="text-sm text-gray-500">
-                  mschm.id/{weddingSite.slug}
+                  <a href="/" target="_blank" rel="noopener noreferrer">
+                    View wedding invitation
+                  </a>
                 </p>
               )}
             </div>
@@ -110,11 +120,43 @@ export default function AdminDashboard() {
 
       {/* Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {activeTab === 'builder' ? (
+        {loadError ? (
+          <div role="alert" className="space-y-4">
+            <p>Unable to load your saved wedding. Your existing versions have not been changed.</p>
+            <Button onClick={fetchWeddingSite}>Try again</Button>
+          </div>
+        ) : activeTab === 'builder' ? (
+          <>
+          {versions.length > 0 && (
+            <div className="mb-6 space-y-2">
+              <label htmlFor="wedding-version" className="block text-sm font-medium">Saved version</label>
+              <select
+                id="wedding-version"
+                className="w-full max-w-xl rounded-md border bg-white px-3 py-2 text-sm"
+                value={weddingSite?.versionId || ''}
+                onChange={event => {
+                  const selected = versions.find(version => version.versionId === event.target.value);
+                  if (!selected || selected.versionId === weddingSite?.versionId) return;
+                  if (hasUnsavedChanges && !window.confirm('Switch versions and discard your unsaved edits?')) return;
+                  setWeddingSite(selected);
+                  setHasUnsavedChanges(false);
+                }}
+              >
+                {versions.map(version => (
+                  <option key={version.versionId} value={version.versionId}>
+                    Version {version.versionNumber} - {new Date(version.updatedAt).toLocaleString()} {version.isPublished ? '(Live)' : '(Draft)'}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <BuilderForm
+            key={weddingSite?.versionId || weddingSite?.id || 'new'}
             initialData={weddingSite ?? undefined}
             onSave={handleSave}
+            onDirtyChange={setHasUnsavedChanges}
           />
+          </>
         ) : (
           <RSVPList siteId={weddingSite?.id} />
         )}

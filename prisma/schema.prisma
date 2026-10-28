@@ -31,6 +31,7 @@ model WeddingSite {
   // URL and Publishing
   slug      String   @unique
   isPublished Boolean @default(false)
+  publishedVersionId String?
   password  String?
   
   // Global Styles
@@ -46,6 +47,8 @@ model WeddingSite {
   groomName        String?
   weddingDate      DateTime?
   heroImageUrl     String?
+  postcardImageUrl String?
+  postcardStampUrl String?
   
   // Our Story Section
   storyEnabled     Boolean @default(true)
@@ -75,6 +78,17 @@ model WeddingSite {
   
   events Event[]
   rsvps  RSVP[]
+  versions WeddingVersion[]
+}
+
+model WeddingVersion {
+  id        String @id @default(cuid())
+  siteId    String
+  site      WeddingSite @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  data      Json
+  createdAt DateTime @default(now())
+
+  @@index([siteId, createdAt])
 }
 
 model Event {

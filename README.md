@@ -103,6 +103,24 @@ bun run dev
 
 The app will be available at `http://localhost:4321`
 
+Guests visit `/` to view the wedding invitation. Manage the wedding at
+`/admin` (sign in at `/login`). Personalized invitations use `/?to=Guest%20Name`.
+The home page displays the earliest-created published wedding; this deployment
+is intended to present one wedding. Until a wedding is published, it shows an
+unpublished message. The wedding identifier remains in use by the APIs, but is
+not part of the guest-facing URL. Old `/<slug>` links redirect to `/` and retain
+their query parameters.
+
+### Saved Versions
+
+The admin loads your latest saved version with all existing fields prefilled.
+Use **Saved version** to load an older version. **Save New Version** creates a
+draft snapshot without changing the live invitation. **Publish New Version**
+creates a snapshot and makes it live. Previous versions remain available, and
+RSVP responses stay attached to the same wedding. Images are referenced by URL,
+not duplicated. Apply the checked-in migrations with `npx prisma migrate deploy`
+when deploying this feature to another database; existing weddings become version 1.
+
 ## 📦 Build
 
 Build for production:
@@ -171,9 +189,9 @@ weddingly-builder/
 │   │   │   ├── upload.ts       # Cloudinary upload
 │   │   │   ├── wedding/        # Wedding CRUD
 │   │   │   └── rsvp.ts         # RSVP submission
-│   │   ├── builder.astro       # Admin builder page
-│   │   ├── [slug].astro        # Dynamic wedding pages
-│   │   └── index.astro         # Landing page
+│   │   ├── admin.astro         # Authenticated admin builder
+│   │   ├── [slug].astro        # Legacy invitation redirects
+│   │   └── index.astro         # Guest wedding invitation
 │   └── styles/
 │       └── global.css          # Global styles
 ├── prisma/
