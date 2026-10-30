@@ -46,15 +46,7 @@ export function GuestGallerySection({
       >
         <div className="guest-inner">
           <p className="guest-kicker">Collected moments</p>
-          <h2
-            className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
-            style={{
-              fontFamily: headingFont,
-              color: '#333',
-            }}
-          >
-            {galleryTitle}
-          </h2>
+          <h2 style={{ fontFamily: headingFont }}>{galleryTitle}</h2>
 
           <div
             className={`grid ${getGridLayout(

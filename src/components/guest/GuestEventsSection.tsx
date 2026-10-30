@@ -46,15 +46,7 @@ export function GuestEventsSection({
     >
       <div className="guest-inner">
         <p className="guest-kicker">The itinerary</p>
-        <h2
-          className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
-          style={{
-            fontFamily: headingFont,
-            color: '#333',
-          }}
-        >
-          When & Where
-        </h2>
+        <h2 style={{ fontFamily: headingFont }}>When &amp; Where</h2>
 
         <div className="guest-event-list">
           {events.map((event, index) => (
@@ -68,11 +60,8 @@ export function GuestEventsSection({
                 <span className="guest-kicker">{String(index + 1).padStart(2, '0')}</span>
                 {/* Event Title */}
                 <h3
-                  className="text-2xl sm:text-3xl font-bold mb-6"
-                  style={{
-                    fontFamily: headingFont,
-                    color: '#293d37',
-                  }}
+                  className="guest-event-title"
+                  style={{ fontFamily: headingFont }}
                 >
                   {event.title}
                 </h3>
@@ -80,40 +69,25 @@ export function GuestEventsSection({
                 <div className="space-y-4">
                   {/* Date */}
                   <div className="flex items-start gap-3">
-                    <Calendar
-                      className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: primaryColor }}
-                    />
+                    <Calendar className="mt-0.5 shrink-0" aria-hidden="true" />
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {formatDate(event.date)}
-                      </p>
+                      <p>{formatDate(event.date)}</p>
                     </div>
                   </div>
 
                   {/* Time */}
                   <div className="flex items-start gap-3">
-                    <Clock
-                      className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: primaryColor }}
-                    />
+                    <Clock className="mt-0.5 shrink-0" aria-hidden="true" />
                     <div>
-                      <p className="font-medium text-gray-900">
-                        {event.time}
-                      </p>
+                      <p>{event.time}</p>
                     </div>
                   </div>
 
                   {/* Location */}
                   <div className="flex items-start gap-3">
-                    <MapPin
-                      className="w-5 h-5 mt-1 shrink-0"
-                      style={{ color: primaryColor }}
-                    />
+                    <MapPin className="mt-0.5 shrink-0" aria-hidden="true" />
                     <div className="flex-1">
-                      <p className="font-medium text-gray-900 mb-1">
-                        {event.location}
-                      </p>
+                      <p style={{ marginBottom: '2px' }}>{event.location}</p>
                       <p className="guest-event-address">{event.address}</p>
                       {event.address && <a className="guest-map-link" href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(event.address)}`} target="_blank" rel="noopener noreferrer">Get directions <ArrowUpRight size={14} aria-hidden="true" /></a>}
                     </div>

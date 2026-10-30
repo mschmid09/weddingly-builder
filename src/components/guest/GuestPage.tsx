@@ -8,7 +8,7 @@ import { GuestGallerySection } from './GuestGallerySection';
 import { GuestRegistrySection } from './GuestRegistrySection';
 import { RSVPForm } from './RSVPForm';
 import './guest.css';
-import { decodeGuestName } from '../../lib/utils';
+import { decodeGuestName, hexToRgb } from '../../lib/utils';
 
 interface WeddingSite {
   id: string;
@@ -73,7 +73,19 @@ export default function GuestPage({ slug }: GuestPageProps) {
     fetchWeddingSite();
   }, [slug]);
 
+  const sessionKey = `ws_${slug}`;
+
   const fetchWeddingSite = async () => {
+    // Restore from sessionStorage to survive HMR remounts without re-prompting
+    try {
+      const cached = sessionStorage.getItem(sessionKey);
+      if (cached) {
+        setWeddingSite(JSON.parse(cached));
+        setLoading(false);
+        return;
+      }
+    } catch {}
+
     try {
       const response = await fetch(`/api/wedding/${slug}`);
       const data = await response.json();
@@ -94,6 +106,7 @@ export default function GuestPage({ slug }: GuestPageProps) {
         setRequiresPassword(true);
         setLoading(false);
       } else {
+        try { sessionStorage.setItem(sessionKey, JSON.stringify(data.weddingSite)); } catch {}
         setWeddingSite(data.weddingSite);
         setLoading(false);
       }
@@ -107,9 +120,7 @@ export default function GuestPage({ slug }: GuestPageProps) {
     try {
       const response = await fetch(`/api/wedding/${slug}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       });
 
@@ -120,6 +131,7 @@ export default function GuestPage({ slug }: GuestPageProps) {
         return;
       }
 
+      try { sessionStorage.setItem(sessionKey, JSON.stringify(data.weddingSite)); } catch {}
       setWeddingSite(data.weddingSite);
       setRequiresPassword(false);
       setPasswordError(null);
@@ -166,6 +178,15 @@ export default function GuestPage({ slug }: GuestPageProps) {
     return null;
   }
 
+  const inkRgb = hexToRgb(weddingSite.primaryColor);
+  const mutedRgb = hexToRgb(weddingSite.secondaryColor);
+  const colorVars = inkRgb && mutedRgb ? {
+    '--guest-ink': weddingSite.primaryColor,
+    '--guest-muted': weddingSite.secondaryColor,
+    '--guest-rule': `rgba(${inkRgb[0]},${inkRgb[1]},${inkRgb[2]},0.18)`,
+    '--guest-accent': weddingSite.accentColor,
+  } as React.CSSProperties : {};
+
   return (
     <>
       {/* Main Content */}
@@ -175,6 +196,7 @@ export default function GuestPage({ slug }: GuestPageProps) {
           className="guest-stationery"
           style={{
             fontFamily: weddingSite.bodyFont,
+            ...colorVars,
           }}
         >
           {/* Content with higher z-index */}
@@ -209,15 +231,13 @@ export default function GuestPage({ slug }: GuestPageProps) {
               )}
             {/* Events Section */}
             {weddingSite.events && weddingSite.events.length > 0 && (
-              <div>
-                <GuestEventsSection
-                  events={weddingSite.events}
-                  primaryColor={weddingSite.primaryColor}
-                  secondaryColor={weddingSite.secondaryColor}
-                  headingFont={weddingSite.headingFont}
-                  bodyFont={weddingSite.bodyFont}
-                />
-              </div>
+              <GuestEventsSection
+                events={weddingSite.events}
+                primaryColor={weddingSite.primaryColor}
+                secondaryColor={weddingSite.secondaryColor}
+                headingFont={weddingSite.headingFont}
+                bodyFont={weddingSite.bodyFont}
+              />
             )}
             {/* Divider */}
             {weddingSite.storyEnabled && (
@@ -225,17 +245,15 @@ export default function GuestPage({ slug }: GuestPageProps) {
             )}
             {/* Story Section */}
             {weddingSite.storyEnabled && (
-              <div>
-                <GuestStorySection
-                  storyTitle={weddingSite.storyTitle}
-                  storyText={weddingSite.storyText}
-                  storyImage1Url={weddingSite.storyImage1Url}
-                  storyImage2Url={weddingSite.storyImage2Url}
-                  primaryColor={weddingSite.primaryColor}
-                  headingFont={weddingSite.headingFont}
-                  bodyFont={weddingSite.bodyFont}
-                />
-              </div>
+              <GuestStorySection
+                storyTitle={weddingSite.storyTitle}
+                storyText={weddingSite.storyText}
+                storyImage1Url={weddingSite.storyImage1Url}
+                storyImage2Url={weddingSite.storyImage2Url}
+                primaryColor={weddingSite.primaryColor}
+                headingFont={weddingSite.headingFont}
+                bodyFont={weddingSite.bodyFont}
+              />
             )}
             {/* Divider */}
             {weddingSite.galleryEnabled && (
@@ -243,63 +261,48 @@ export default function GuestPage({ slug }: GuestPageProps) {
             )}
             {/* Gallery Section */}
             {weddingSite.galleryEnabled && (
-              <div>
-                <GuestGallerySection
-                  galleryTitle={weddingSite.galleryTitle}
-                  galleryImages={weddingSite.galleryImages}
-                  primaryColor={weddingSite.primaryColor}
-                  headingFont={weddingSite.headingFont}
-                />
-              </div>
+              <GuestGallerySection
+                galleryTitle={weddingSite.galleryTitle}
+                galleryImages={weddingSite.galleryImages}
+                primaryColor={weddingSite.primaryColor}
+                headingFont={weddingSite.headingFont}
+              />
             )}
             {/* Divider */}
             {weddingSite.registryEnabled && (
               <hr className="guest-rule" />
-            )}{' '}
+            )}
             {/* Registry Section */}
             {weddingSite.registryEnabled && (
-              <div>
-                <GuestRegistrySection
-                  registryTitle={weddingSite.registryTitle}
-                  registryText={weddingSite.registryText}
-                  primaryColor={weddingSite.primaryColor}
-                  secondaryColor={weddingSite.secondaryColor}
-                  headingFont={weddingSite.headingFont}
-                  bodyFont={weddingSite.bodyFont}
-                />
-              </div>
+              <GuestRegistrySection
+                registryTitle={weddingSite.registryTitle}
+                registryText={weddingSite.registryText}
+                primaryColor={weddingSite.primaryColor}
+                secondaryColor={weddingSite.secondaryColor}
+                headingFont={weddingSite.headingFont}
+                bodyFont={weddingSite.bodyFont}
+              />
             )}
             {/* RSVP Section */}
-            <div>
-              <section
-                id="rsvp"
-                className="guest-reply guest-section"
-              >
-                <div className="max-w-2xl mx-auto relative z-10">
-                  <p className="guest-kicker">A note in return</p>
-                  <h2
-                    className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-8 sm:mb-12"
-                    style={{
-                      fontFamily: weddingSite.headingFont,
-                      color: '#333',
-                    }}
-                  >
-                    Kindly reply
-                  </h2>
-
-                  <div className="guest-reply-form">
-                    <div className="relative z-10">
-                      <RSVPForm
-                        siteSlug={weddingSite.slug}
-                        primaryColor={weddingSite.primaryColor}
-                        accentColor={weddingSite.accentColor}
-                        guestName={guestName || undefined}
-                      />
-                    </div>
-                  </div>
+            <section
+              id="rsvp"
+              className="guest-reply guest-section"
+            >
+              <div className="max-w-2xl mx-auto">
+                <p className="guest-kicker">A note in return</p>
+                <h2 style={{ fontFamily: weddingSite.headingFont, textAlign: 'center' }}>
+                  Kindly reply
+                </h2>
+                <div className="guest-reply-form">
+                  <RSVPForm
+                    siteSlug={weddingSite.slug}
+                    primaryColor={weddingSite.primaryColor}
+                    accentColor={weddingSite.accentColor}
+                    guestName={guestName || undefined}
+                  />
                 </div>
-              </section>
-            </div>
+              </div>
+            </section>
             <footer className="guest-footer">
               <p style={{ fontFamily: weddingSite.headingFont }}>{weddingSite.brideName} &amp; {weddingSite.groomName}</p>
               <span>With love, always.</span>

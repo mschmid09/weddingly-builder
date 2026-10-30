@@ -26,15 +26,7 @@ export function GuestStorySection({
     >
       <div className="guest-inner">
         <p className="guest-kicker">A little about us</p>
-        <h2
-          className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
-          style={{
-            fontFamily: headingFont,
-            color: '#333',
-          }}
-        >
-          {storyTitle}
-        </h2>
+        <h2 style={{ fontFamily: headingFont }}>{storyTitle}</h2>
 
         <div className="grid gap-8 sm:gap-12">
           {/* Story Text */}
@@ -66,7 +58,6 @@ export function GuestStorySection({
                     src={storyImage1Url}
                     alt="Our story"
                     loading="lazy"
-                    className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>
               )}
@@ -78,7 +69,6 @@ export function GuestStorySection({
                     src={storyImage2Url}
                     alt="Our story"
                     loading="lazy"
-                    className="w-full h-64 sm:h-80 object-cover"
                   />
                 </div>
               )}
