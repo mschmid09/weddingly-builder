@@ -56,9 +56,9 @@ export function EnvelopeInvitation({
   // Envelope sized to PP's native 1152:1616 ratio
   // Cap height to 62% of viewport so it doesn't look elongated on short screens
   const envW = Math.min(
-    Math.round(viewport.height * 0.62 * ENV_RATIO),
-    mobile ? Math.round(viewport.width * 0.84) : Math.round(viewport.width * 0.40),
-    mobile ? 280 : 400,
+    Math.round(viewport.height * 0.70 * ENV_RATIO),
+    mobile ? Math.round(viewport.width * 0.90) : Math.round(viewport.width * 0.46),
+    mobile ? 360 : 500,
   );
   const envH = Math.round(envW / ENV_RATIO);
 

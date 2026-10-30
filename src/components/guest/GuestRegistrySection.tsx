@@ -27,11 +27,7 @@ export function GuestRegistrySection({
       <div className="max-w-3xl mx-auto">
         <p className="guest-kicker">With gratitude</p>
         <h2
-          className="text-3xl sm:text-4xl md:text-5xl font-bold text-center mb-12 sm:mb-16"
-          style={{
-            fontFamily: headingFont,
-            color: '#333',
-          }}
+          style={{ fontFamily: headingFont }}
         >
           {registryTitle}
         </h2>

@@ -66,7 +66,6 @@
   display: flex;
   flex-direction: column;
   padding: 24px 24px 20px;
-  position: relative;
   gap: 0;
 }
 /* Inset decorative border */
@@ -226,16 +225,25 @@
 /* ─── Mobile ─────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
   .postcard-front { padding: 9px; }
-  .postcard-back { padding: 18px 18px 16px; }
-  .postcard-message h1 { font-size: 32px; }
-  .postcard-signature { font-size: 28px; }
+  .postcard-back { padding: 16px 16px 14px; }
+  .postcard-postage { margin-bottom: 10px; }
+  .postcard-message { padding: 0 6px; }
+  .postcard-message h1 { font-size: 30px; margin: 8px 0 8px; }
+  .postcard-note { font-size: 11px; line-height: 1.7; }
+  /* clamp so long names scale down instead of being clipped */
+  .postcard-signature { font-size: clamp(18px, 7vw, 26px); margin: 10px 0 3px; }
+  .postcard-date { margin-top: 2px; }
+  .postcard-recipient { padding: 10px 0 8px; margin-top: 8px; }
+  .postcard-recipient p { font-size: clamp(16px, 5.5vw, 20px); }
+  .postcard-open { margin-top: 10px; min-height: 38px; padding: 6px 0; }
   .postcard-stamp { width: 56px; height: 74px; padding: 4px; }
   .postcard-stamp span { font-size: 5px; }
   .postcard-postmark { width: 64px; height: 64px; font-size: 6px; }
-  .postcard-recipient p { font-size: 22px; }
 }
 
 @media (max-width: 360px) {
-  .postcard-back { padding: 16px; }
-  .postcard-message h1 { font-size: 28px; }
+  .postcard-back { padding: 14px; }
+  .postcard-message h1 { font-size: 26px; }
+  .postcard-signature { font-size: clamp(16px, 6.5vw, 22px); }
+  .postcard-recipient p { font-size: clamp(14px, 5vw, 18px); }
 }

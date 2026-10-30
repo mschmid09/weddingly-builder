@@ -210,17 +210,21 @@
 
 /* ─── Mobile ─────────────────────────────────────────────────────────────── */
 @media (max-width: 600px) {
-  .guest-section { padding: 64px 22px; }
-  .guest-stationery h2 { font-size: 30px; }
-  .guest-hero { min-height: 560px; padding: 72px 22px 52px; }
+  .guest-section { padding: 56px 20px; }
+  .guest-stationery h2 { font-size: 28px; line-height: 1.25; }
+  .guest-hero { min-height: 520px; padding: 64px 20px 48px; }
   .guest-hero-photo { min-height: 82svh; }
-  .guest-hero h1 { font-size: 44px; }
-  .guest-event-list { gap: 36px; }
-  .guest-story-photo img { height: 260px; }
+  /* clamp so very long names never overflow the hero */
+  .guest-hero h1 { font-size: clamp(28px, 10vw, 44px); overflow-wrap: anywhere; }
+  .guest-event-list { gap: 32px; }
+  .guest-story-photo img { height: 240px; }
   .guest-story-text { font-size: 16px; }
-  .guest-rule { margin-inline: 22px; }
+  .guest-rule { margin-inline: 20px; }
+  .guest-footer p { font-size: 28px; overflow-wrap: anywhere; }
   .guest-reply form .flex.gap-4 { flex-wrap: wrap; gap: 16px; }
   .guest-reply form .flex.gap-4 > label { flex-basis: 100%; }
+  /* prevent wide iframes from causing horizontal scroll */
+  .guest-event iframe { max-width: 100%; }
 }
 
 /* ─── Reduced motion ─────────────────────────────────────────────────────── */
