@@ -23,9 +23,6 @@ interface EnvelopeInvitationProps {
 const defaultPhoto =
   'https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=1600&q=85';
 
-// PP envelope source ratio (1152×1616)
-const ENV_RATIO = 1152 / 1616;
-
 export function EnvelopeInvitation({
   brideName,
   groomName,
@@ -53,45 +50,24 @@ export function EnvelopeInvitation({
 
   const mobile = viewport.width <= 600;
 
-  // Envelope sized to PP's native 1152:1616 ratio
-  // Cap height to 62% of viewport so it doesn't look elongated on short screens
-  const envW = Math.min(
-    Math.round(viewport.height * 0.70 * ENV_RATIO),
-    mobile ? Math.round(viewport.width * 0.90) : Math.round(viewport.width * 0.46),
-    mobile ? 360 : 500,
+  const cardW = Math.min(
+    mobile ? Math.round(viewport.width * 0.92) : Math.round(viewport.width * 0.60),
+    mobile ? 380 : 600,
   );
-  const envH = Math.round(envW / ENV_RATIO);
+  const cardH = Math.round(cardW / 1.5);
 
-  // Card slightly smaller than envelope
-  const cardW = envW - 20;
-  const cardH = Math.round(cardW / 0.714);
+  const cardStartY = Math.round(viewport.height * 0.38);
 
-  // PP: envelope pushed down 63% of its height from center (mostly off-screen below)
-  const envPushDown = Math.round(envH * 0.63);
-
-  // Card starts mostly hidden inside the envelope (~top 8% peeking above the opening)
-  const cardStartY = Math.round(envH * 0.50);
-
-  // ── Scroll timeline (340svh track) ───────────────────────────────────────
-  // [0.04 → 0.38]  card rises from envelope (already open)
-  // [0.28 → 0.46]  envelope fades
-  // [0.44 → 0.58]  card flips to hero
-  // [0.58 → 0.80]  dwell on hero face
-  // [0.80 → 1.00]  card expands to full screen
-
-  const cardLift        = useTransform(scrollYProgress, [0.04, 0.38], [cardStartY, 0]);
-  const envelopeDrop    = useTransform(scrollYProgress, [0.04, 0.38], [0, Math.round(envH * 0.28)]);
-  const envelopeY       = useTransform(envelopeDrop, v => `calc(-50% + ${envPushDown + v}px)`);
+  const cardLift        = useTransform(scrollYProgress, [0.0, 0.32], [cardStartY, 0]);
   const cardY           = useTransform(cardLift, v => `calc(-50% + ${v}px)`);
-  const envelopeOpacity = useTransform(scrollYProgress, [0.22, 0.38], [1, 0]);
-  const rotation        = useTransform(scrollYProgress, [0.44, 0.58], [0, 180]);
+  const rotation        = useTransform(scrollYProgress, [0.50, 0.64], [0, 180]);
   const heroOpacity     = useTransform(rotation, [89, 91], [0, 1]);
-  const cardWidth       = useTransform(scrollYProgress, [0.44, 0.58, 0.80, 1.0], [cardW, cardW, cardW, viewport.width]);
-  const cardHeight      = useTransform(scrollYProgress, [0.44, 0.58, 0.80, 1.0], [cardH, cardH, cardH, viewport.height]);
-  const borderPad       = useTransform(scrollYProgress, [0.80, 1.0], [mobile ? 9 : 12, 0]);
-  const tapPromptOpacity = useTransform(scrollYProgress, [0.60, 0.68, 0.76, 0.84], [0, 1, 1, 0]);
-  const hintOpacity     = useTransform(scrollYProgress, [0, 0.05, 0.22], [0, 1, 0]);
-  const navOpacity      = useTransform(scrollYProgress, [0.60, 0.74], [1, 0]);
+  const cardWidth       = useTransform(scrollYProgress, [0.84, 1.0], [cardW, viewport.width]);
+  const cardHeight      = useTransform(scrollYProgress, [0.84, 1.0], [cardH, viewport.height]);
+  const borderPad       = useTransform(scrollYProgress, [0.84, 1.0], [mobile ? 11 : 16, 0]);
+  const tapPromptOpacity = useTransform(scrollYProgress, [0.66, 0.74, 0.82, 0.90], [0, 1, 1, 0]);
+  const hintOpacity     = useTransform(scrollYProgress, [0, 0.06, 0.22], [0, 1, 0]);
+  const navOpacity      = useTransform(scrollYProgress, [0.66, 0.80], [1, 0]);
 
   const couple    = [brideName, groomName].filter(Boolean).join(' & ') || 'Our wedding';
   const photo     = postcardImageUrl || defaultPhoto;
@@ -113,7 +89,7 @@ export function EnvelopeInvitation({
   }, []);
 
   useMotionValueEvent(scrollYProgress, 'change', p => {
-    setHeroSide(p >= 0.60);
+    setHeroSide(p >= 0.57);
     setRevealed(p >= 0.98);
     if (p >= 0.995 && focusOnOpen.current) {
       focusOnOpen.current = false;
@@ -121,15 +97,22 @@ export function EnvelopeInvitation({
     }
   });
 
-  const scrollToProgress = (target: number) => {
+  const scrollToProgress = (target: number, duration = 1400) => {
     const track = trackRef.current;
     const stage = stageRef.current;
     if (!track || !stage) return;
-    const top = window.scrollY + track.getBoundingClientRect().top;
-    window.scrollTo({
-      top: top + (track.offsetHeight - stage.offsetHeight) * target,
-      behavior: reducedMotion ? 'instant' : 'smooth',
-    });
+    const dest = window.scrollY + track.getBoundingClientRect().top + (track.offsetHeight - stage.offsetHeight) * target;
+    if (reducedMotion) { window.scrollTo({ top: dest, behavior: 'instant' }); return; }
+    const start = window.scrollY;
+    const dist = dest - start;
+    const t0 = performance.now();
+    const ease = (t: number) => t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    const step = (now: number) => {
+      const p = Math.min((now - t0) / duration, 1);
+      window.scrollTo(0, start + dist * ease(p));
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   };
 
   const noteVisible = !heroSide;
@@ -142,32 +125,9 @@ export function EnvelopeInvitation({
       style={{ fontFamily: headingFont }}
     >
       <div ref={stageRef} className="postcard-stage">
-        <div className="postcard-backdrop" />
+        <div className="postcard-backdrop" style={{ backgroundImage: `url(${photo})` }} />
 
-        {/* Envelope back layers — behind the card */}
-        {!reducedMotion && (
-          <motion.div
-            className="postcard-envelope"
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              x: '-50%',
-              y: envelopeY,
-              opacity: envelopeOpacity,
-              width: envW,
-              height: envH,
-              zIndex: 1,
-            }}
-          >
-            <img className="env-layer" src="/envelope/pp-envelopeBackFlap.png" alt="" />
-            <img className="env-layer" src="/envelope/pp-envelopeBackBase.png" alt="" />
-            <img className="env-layer" src="/envelope/pp-envelopeBackCover.png" alt="" />
-          </motion.div>
-        )}
-
-        {/* Card — rises through the envelope opening */}
+        {/* Card — rises from below */}
         <motion.div
           className="postcard-arrival"
           style={{
@@ -193,39 +153,44 @@ export function EnvelopeInvitation({
               aria-hidden={!noteVisible}
               {...(!noteVisible ? ({ inert: 'true' } as Record<string, string>) : {})}
             >
-              <div className="postcard-postage" aria-label="Postage">
-                <div className="postcard-stamp">
-                  <img
-                    src={postcardStampUrl || photo}
-                    alt=""
-                    onError={e => { if (e.currentTarget.src !== defaultPhoto) e.currentTarget.src = defaultPhoto; }}
-                  />
-                  <span>LOVE / FOREVER</span>
+              <div className="postcard-body">
+                <div className="postcard-left">
+                  <div className="postcard-message">
+                    <h1>You're invited.</h1>
+                    <p className="postcard-note">
+                      To a day we'll remember forever.
+                      <br />It wouldn't be the same without you.
+                    </p>
+                    <p className="postcard-signature">{couple}</p>
+                    {dateLabel && <p className="postcard-date">{dateLabel}</p>}
+                  </div>
+                  <button
+                    className="postcard-open"
+                    onClick={e => { e.stopPropagation(); focusOnOpen.current = true; scrollToProgress(1, 2400); }}
+                  >
+                    Open invitation <ArrowRight size={15} aria-hidden="true" />
+                  </button>
+                </div>
+                <div className="postcard-divider-line" aria-hidden="true" />
+                <div className="postcard-right">
+                  <div className="postcard-postage" aria-label="Postage">
+                    <div className="postcard-stamp">
+                      <img
+                        src={postcardStampUrl || photo}
+                        alt=""
+                        onError={e => { if (e.currentTarget.src !== defaultPhoto) e.currentTarget.src = defaultPhoto; }}
+                      />
+                    </div>
+                  </div>
+                  <div className="postcard-recipient">
+                    <span className="postcard-eyebrow">To</span>
+                    <p>{guestName || 'Our dearest friends & family'}</p>
+                    <div className="postcard-address-lines" aria-hidden="true">
+                      <div /><div /><div />
+                    </div>
+                  </div>
                 </div>
               </div>
-
-              <div className="postcard-message">
-                <span className="postcard-eyebrow">Together with our families</span>
-                <h1>You're invited.</h1>
-                <p className="postcard-note">
-                  To a day we'll remember forever.
-                  <br />It wouldn't be the same without you.
-                </p>
-                <p className="postcard-signature">{couple}</p>
-                {dateLabel && <p className="postcard-date">{dateLabel}</p>}
-              </div>
-
-              <div className="postcard-recipient">
-                <span className="postcard-eyebrow">Especially for</span>
-                <p>{guestName || 'Our dearest friends & family'}</p>
-              </div>
-
-              <button
-                className="postcard-open"
-                onClick={e => { e.stopPropagation(); focusOnOpen.current = true; scrollToProgress(1); }}
-              >
-                Open invitation <ArrowRight size={17} aria-hidden="true" />
-              </button>
             </div>
 
             {/* FRONT face — hero content */}
@@ -254,48 +219,24 @@ export function EnvelopeInvitation({
                   />
                 )}
               </div>
-              {!reducedMotion && (
-                <motion.button
-                  className="postcard-open-full"
-                  style={{ opacity: tapPromptOpacity, pointerEvents: heroSide && !revealed ? 'auto' : 'none' }}
-                  tabIndex={heroSide && !revealed ? 0 : -1}
-                  aria-hidden={!heroSide || revealed}
-                  onClick={() => { focusOnOpen.current = true; scrollToProgress(1); }}
-                >
-                  Open invitation <ArrowRight size={17} aria-hidden="true" />
-                </motion.button>
-              )}
             </motion.div>
           </motion.div>
+          {!reducedMotion && (
+            <motion.button
+              className="postcard-open-full"
+              style={{ opacity: tapPromptOpacity, pointerEvents: heroSide && !revealed ? 'auto' : 'none' }}
+              tabIndex={heroSide && !revealed ? 0 : -1}
+              aria-hidden={!heroSide || revealed}
+              onClick={() => { focusOnOpen.current = true; scrollToProgress(1); }}
+            >
+              Open invitation <ArrowRight size={17} aria-hidden="true" />
+            </motion.button>
+          )}
         </motion.div>
-
-        {/* Envelope front layers — in front of card */}
-        {!reducedMotion && (
-          <motion.div
-            className="postcard-envelope"
-            aria-hidden="true"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              x: '-50%',
-              y: envelopeY,
-              opacity: envelopeOpacity,
-              width: envW,
-              height: envH,
-              zIndex: 3,
-            }}
-          >
-            <img className="env-layer" src="/envelope/pp-envelopeFrontBase.png" alt="" />
-            <img className="env-layer" src="/envelope/pp-envelopeFrontFlapShadow.png" alt="" />
-            <img className="env-layer" src="/envelope/pp-envelopeFrontFlap.png" alt="" />
-          </motion.div>
-        )}
 
         {!reducedMotion && (
           <motion.div className="postcard-scroll-hint" style={{ opacity: hintOpacity }} aria-hidden="true">
             <ChevronDown size={18} />
-            <span>scroll to open</span>
           </motion.div>
         )}
 
@@ -303,7 +244,7 @@ export function EnvelopeInvitation({
           className="postcard-turn"
           style={{ opacity: navOpacity }}
           tabIndex={revealed ? -1 : 0}
-          onClick={() => scrollToProgress(heroSide ? 0.28 : 0.72)}
+          onClick={() => scrollToProgress(heroSide ? 0.25 : 0.76)}
           aria-label={heroSide ? 'Back to invitation' : 'Open invitation'}
         >
           <ArrowRight size={19} aria-hidden="true"

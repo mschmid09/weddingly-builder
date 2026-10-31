@@ -34,15 +34,17 @@
   justify-content: center;
   padding: 88px 28px 72px;
   text-align: center;
+  container-type: inline-size;
 }
 .guest-hero-photo { min-height: min(840px, 90svh); color: #fff; }
 .guest-hero-content { width: min(100%, 1000px); }
 .guest-hero h1 {
-  font-size: 72px;
+  font-size: clamp(18px, 5cqw, 76px);
   line-height: 1.1;
   font-weight: 400;
   margin: 20px 0;
   color: inherit;
+  white-space: nowrap;
 }
 .guest-hero-photo h1 { color: #fff; }
 .guest-hero p { font-size: 14px; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -215,7 +217,7 @@
   .guest-hero { min-height: 520px; padding: 64px 20px 48px; }
   .guest-hero-photo { min-height: 82svh; }
   /* clamp so very long names never overflow the hero */
-  .guest-hero h1 { font-size: clamp(28px, 10vw, 44px); overflow-wrap: anywhere; }
+  .guest-hero h1 { font-size: clamp(16px, 5cqw, 44px); }
   .guest-event-list { gap: 32px; }
   .guest-story-photo img { height: 240px; }
   .guest-story-text { font-size: 16px; }

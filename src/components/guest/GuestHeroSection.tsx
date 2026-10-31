@@ -43,14 +43,10 @@ export function GuestHeroSection({
             Dear {guestName},
           </p>
         )}
-        <p className="guest-hero-eyebrow">Together with their families</p>
         <h1>{brideName} &amp; {groomName}</h1>
         {weddingDate && (
           <p className="guest-hero-date">{formatDate(weddingDate)}</p>
         )}
-        <a className="guest-reply-link" href="#rsvp">
-          Kindly reply <ArrowDown size={14} aria-hidden="true" />
-        </a>
       </div>
     </section>
   );

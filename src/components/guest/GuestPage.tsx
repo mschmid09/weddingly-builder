@@ -62,6 +62,13 @@ export default function GuestPage({ slug }: GuestPageProps) {
     null,
   );
   const [guestName, setGuestName] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!weddingSite) return;
+    const couple = [weddingSite.brideName, weddingSite.groomName].filter(Boolean).join(' & ');
+    if (couple) document.title = couple;
+  }, [weddingSite]);
+
   useEffect(() => {
     // Get guest name from URL parameter
     const params = new URLSearchParams(window.location.search);
