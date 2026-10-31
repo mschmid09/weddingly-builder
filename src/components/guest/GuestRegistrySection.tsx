@@ -7,6 +7,15 @@ interface RegistrySectionProps {
   bodyFont?: string;
 }
 
+function linkify(text: string) {
+  const parts = text.split(/(https?:\/\/[^\s]+)/g);
+  return parts.map((part, i) =>
+    /^https?:\/\//.test(part)
+      ? <a key={i} href={part} target="_blank" rel="noopener noreferrer" style={{ textDecoration: 'underline' }}>{part}</a>
+      : part
+  );
+}
+
 export function GuestRegistrySection({
   registryTitle = 'Gift Registry',
   registryText,
@@ -39,7 +48,7 @@ export function GuestRegistrySection({
             className="prose prose-sm sm:prose-base max-w-none text-gray-700 whitespace-pre-wrap"
             style={{ fontFamily: bodyFont }}
           >
-            {registryText}
+            {linkify(registryText)}
           </div>
         </div>
       </div>
